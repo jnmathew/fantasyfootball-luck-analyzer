@@ -231,31 +231,31 @@ def get_luck_index(league, team_id):
 
     return luck_index
 
-def calculate_pythagorean_expectation_luck(league, p=2):
+def calculate_pythagorean_expectation_luck(league_data, p=2):
     """
     Calculate Pythagorean Expectation Luck for all teams, with normalization.
 
     Parameters:
-    - league: The league object with data on teams and matchups.
+    - league_data: The dictionary with data on teams and matchups.
     - p: The exponent for the Pythagorean formula (default=2).
 
     Returns:
     - List of dictionaries with Team Name, Team ID, Actual Wins, Expected Wins, and Luck Score.
     """
     team_luck_data = []
-    current_week = league.current_week
-    games_played = current_week - 1  # Games completed so far
+    current_week = league_data['current_week']
+    games_played = min(current_week - 1, league_data['regular_season_count'])  # Games completed so far
 
     print("Debugging Pythagorean Expectation Luck Calculation:\n")
     total_actual_wins = 0
     total_expected_wins = 0
 
-    teams = league.teams    
+    teams = league_data['teams']
 
     for team in teams:
-        points_for = team.points_for
-        points_against = team.points_against
-        actual_wins = team.wins
+        points_for = team['points_for']
+        points_against = team['points_against']
+        actual_wins = team['wins']
 
         # Calculate expected win percentage
         expected_win_percentage = (points_for ** p) / ((points_for ** p) + (points_against ** p))
@@ -269,8 +269,8 @@ def calculate_pythagorean_expectation_luck(league, p=2):
 
         # Add preliminary team data to the results
         team_luck_data.append({
-            "Team Name": team.team_name,
-            "Team ID": team.team_id,
+            "Team Name": team['name'],
+            "Team ID": team['id'],
             "Actual Wins": actual_wins,
             "Expected Wins": expected_wins,  # To be normalized
             "Luck Index": None  # Placeholder for now

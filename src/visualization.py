@@ -1,3 +1,4 @@
+from matplotlib import cm
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
@@ -442,5 +443,44 @@ def create_scatterplot_luck_figure(df, selected_team=None):
         ),
         showlegend=False  # Hide the legend
     )
+    
+    return fig
+
+def plot_pythagorean_expectation_luck(pythagorean_luck_data):
+    """
+    Plot Pythagorean Expectation Luck for all teams.
+
+    Parameters:
+    - pythagorean_luck_data: List of dictionaries with Team Name, Actual Wins, Expected Wins, and Luck Index.
+
+    Returns:
+    - fig: A Matplotlib figure object.
+    """
+    # Sort teams by luck index (best luck on top)
+    pythagorean_luck_data.sort(key=lambda x: x['Luck Index'], reverse=True)
+    fig, ax = plt.subplots()
+    teams = [team['Team Name'] for team in pythagorean_luck_data]
+    luck_index = [team['Luck Index'] for team in pythagorean_luck_data]
+
+    # Create a color gradient
+    norm = plt.Normalize(min(luck_index), max(luck_index))
+    colors = cm.RdYlGn(norm(luck_index))
+
+    bars = ax.barh(teams, luck_index, color=colors)
+
+    # Add labels inside the bars
+    for bar, value in zip(bars, luck_index):
+        ax.text(
+            bar.get_width() / 2,
+            bar.get_y() + bar.get_height() / 2,
+            f'{value:.2f}',
+            ha='center',
+            va='center',
+            color='black'
+        )
+
+    ax.set_xlabel('Luck Index (Actual Wins - Expected Wins)')
+    ax.set_title('Pythagorean Expectation Luck')
+    ax.invert_yaxis()  # Invert y-axis to have the best luck on top
     
     return fig

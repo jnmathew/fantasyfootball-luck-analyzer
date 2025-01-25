@@ -1,11 +1,12 @@
 import streamlit as st
 from espn_api.football import League
 from api_client import fetch_league_data
-from visualization import plot_luck_indices, save_luck_indices_to_file_3, create_scheduling_luck_dataframe, save_and_visualize_pythagorean_luck \
+from visualization import plot_luck_indices, plot_pythagorean_expectation_luck, save_luck_indices_to_file_3, create_scheduling_luck_dataframe, save_and_visualize_pythagorean_luck \
     , create_scatterplot_luck_figure
 from analysis import calculate_pythagorean_expectation_luck, calculate_scatterplot_luck, get_luck_index_3
 import os
 from dotenv import load_dotenv
+import matplotlib.pyplot as plt
 
 # Load environment variables from .env file
 load_dotenv()
@@ -102,7 +103,8 @@ def display_visualizations():
                 st.pyplot(plot)
             elif st.session_state['metric'] == 'pythagorean_expectation':
                 pythagorean_luck_data = calculate_pythagorean_expectation_luck(league_data)
-                save_and_visualize_pythagorean_luck(pythagorean_luck_data)
+                fig = plot_pythagorean_expectation_luck(pythagorean_luck_data)
+                st.pyplot(fig)
             elif st.session_state['metric'] == 'scatterplot_luck':
                 scatterplot_luck_df = calculate_scatterplot_luck(league_data)
                 team_names = scatterplot_luck_df["Team Name"].unique()
