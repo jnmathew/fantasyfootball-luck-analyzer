@@ -42,48 +42,6 @@ def calculate_luck_index(league_data, team_id):
     # Return the calculated Luck Index
     return luck_score
 
-
-def get_playoff_weeks(settings):
-    # Extract necessary settings
-    matchup_period_count = settings['scheduleSettings']['matchupPeriodCount']
-    playoff_matchup_period_length = settings['scheduleSettings']['playoffMatchupPeriodLength']
-    matchup_periods = settings['scheduleSettings']['matchupPeriods']
-
-    # Determine the playoff weeks
-    playoff_weeks = []
-    for period, weeks in matchup_periods.items():
-        if int(period) > matchup_period_count:  # Playoff weeks start after regular season
-            playoff_weeks.extend(weeks)
-
-    return sorted(playoff_weeks)
-
-def extract_playoff_scores(data):
-    # Filter playoff matchups from the schedule
-    playoff_matchups = [
-        matchup for matchup in data['schedule']
-        if matchup['playoffTierType'] != "NONE"
-    ]
-
-    # Dictionary to store scores
-    playoff_scores = {}
-
-    # Extract weekly scores for each team
-    for matchup in playoff_matchups:
-        for side in ['home', 'away']:
-            if side in matchup:
-                team_id = matchup[side]['teamId']
-                scores = matchup[side]['pointsByScoringPeriod']
-
-                # Initialize the team in the dictionary if not already present
-                if team_id not in playoff_scores:
-                    playoff_scores[team_id] = {}
-
-                # Add weekly scores to the team's dictionary
-                for week, score in scores.items():
-                    playoff_scores[team_id][week] = score
-
-    return playoff_scores
-
 def get_luck_index_4(league_data):
     # Number of teams in the league
     num_teams = league_data['status']['teamsJoined']
@@ -246,7 +204,6 @@ def calculate_pythagorean_expectation_luck(league_data, p=2):
     current_week = league_data['current_week']
     games_played = min(current_week - 1, league_data['regular_season_count'])  # Games completed so far
 
-    print("Debugging Pythagorean Expectation Luck Calculation:\n")
     total_actual_wins = 0
     total_expected_wins = 0
 
@@ -278,19 +235,12 @@ def calculate_pythagorean_expectation_luck(league_data, p=2):
 
     # Calculate scaling factor for normalization
     scaling_factor = total_actual_wins / total_expected_wins
-    print(f"\nScaling Factor for Normalization: {scaling_factor:.4f}\n")
 
     # Normalize expected wins and calculate final luck index
     for team in team_luck_data:
         normalized_expected_wins = team["Expected Wins"] * scaling_factor
         team["Expected Wins"] = round(normalized_expected_wins, 2)
         team["Luck Index"] = round(team["Actual Wins"] - normalized_expected_wins, 2)
-
-    # Debug: Print league-wide totals
-    print("League-Wide Totals After Normalization:")
-    print(f"  Total Actual Wins: {total_actual_wins}")
-    print(f"  Total Expected Wins: {sum(t['Expected Wins'] for t in team_luck_data):.2f}")
-    print(f"  Difference (should be ~0): {total_actual_wins - sum(t['Expected Wins'] for t in team_luck_data):.2f}\n")
 
     return team_luck_data
 
