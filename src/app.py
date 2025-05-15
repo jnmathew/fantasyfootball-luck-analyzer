@@ -85,7 +85,12 @@ def log_in():
                 st.rerun()
 
 def display_visualizations():
-    
+    if 'league_data' not in st.session_state or st.session_state['league_data'] is None:
+            st.error("League data not found. Please log in.")
+            st.session_state['logged_in'] = False
+            st.rerun()
+            return  # Stop execution of this function
+
     st.title(f"{st.session_state['league_data']['league_name']}: Luck Analysis")
 
     st.write("Here are some visualizations to help you analyze your luck in the league. Postseason fantasy weeks are omitted.")
