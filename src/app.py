@@ -6,7 +6,6 @@ create_scheduling_luck_dataframe, create_scatterplot_luck_figure
 from analysis import calculate_pythagorean_expectation_luck, calculate_scatterplot_luck, get_luck_index_v3
 import os
 from dotenv import load_dotenv
-import matplotlib.pyplot as plt
 
 # Load environment variables from .env file
 load_dotenv()
@@ -20,9 +19,10 @@ ESPN_S2 = os.getenv('ESPN_S2')
 st.markdown("""
     <style>
     .stButton button {
-        width: 300px;
-            display: block;
-            margin: 0 auto;
+        width: 80%;
+        max-width: 300px;
+        display: block;
+        margin: 0 auto;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -88,7 +88,7 @@ def display_visualizations():
     
     st.title(f"{st.session_state['league_data']['league_name']}: Luck Analysis")
 
-    st.write("Here are some visualizations to help you analyze your luck in the league.")
+    st.write("Here are some visualizations to help you analyze your luck in the league. Postseason fantasy weeks are omitted.")
 
     # Create a 2x2 grid for the buttons
     col1, col2 = st.columns(2)
@@ -118,16 +118,46 @@ def display_visualizations():
             league = st.session_state['league']
 
             if st.session_state['metric'] == 'opponent_underperformance':
+                
+                st.subheader("Opponent Underperformance")
+                st.write("""
+                    This visualization shows how much your opponents underperformed or overperformed 
+                    compared to their projected scores. Positive values indicate that your opponents 
+                    scored less than expected, while negative values indicate they scored more than expected.
+                         
+                    e.g. If your opponent was projected to score 100 points but only scored 80,
+                    your luck index is +20. Conversely, if they were projected to score 100
+                    points but scored 120, your luck index is -20 (unlucky for you!).
+                """)
+                
                 luck_indices = get_luck_index_v3(league_data)
                 luck_indices_df = save_luck_indices_to_file_v3(league_data, luck_indices)
-                st.dataframe(luck_indices_df)
+                st.dataframe(luck_indices_df, hide_index=True)
                 plot = generate_opponent_underperformance_chart(luck_indices_df)
                 st.pyplot(plot)
             elif st.session_state['metric'] == 'pythagorean_expectation':
+                
+                st.subheader("Pythagorean Expectation")
+                st.write("""
+                    This visualization compares your actual wins to your expected wins based on the 
+                    Pythagorean Expectation formula. Here, teams with a positive Luck Index have won more games 
+                    than expected, while teams with a negative Luck Index have won fewer games than expected.
+                """)
+                
                 pythagorean_luck_data = calculate_pythagorean_expectation_luck(league_data)
                 fig = plot_pythagorean_expectation_luck(pythagorean_luck_data)
                 st.pyplot(fig)
             elif st.session_state['metric'] == 'scatterplot_luck':
+                
+                st.subheader("Scatterplot Luck")
+                st.write("""
+                    This scatterplot visualizes your team's performance relative to the league average. 
+                    The x-axis represents points scored (relative to the league average), and the y-axis 
+                    represents points allowed (relative to the league average). 
+                    - Blue dots indicate wins, and red dots indicate losses.
+                    - The regions highlight "Lucky Wins" and "Unlucky Losses."
+                """)
+                
                 scatterplot_luck_df = calculate_scatterplot_luck(league_data)
                 team_names = scatterplot_luck_df["Team Name"].unique()
                 selected_team = st.selectbox("Select a team to highlight", options=["All Teams"] + list(team_names))
@@ -136,8 +166,15 @@ def display_visualizations():
                 fig = create_scatterplot_luck_figure(scatterplot_luck_df, selected_team)
                 st.plotly_chart(fig)
             elif st.session_state['metric'] == 'scheduling_luck':
+                st.subheader("Scheduling Luck")
+                st.write("""
+                    This table shows how each team would have performed if they had played every other 
+                    team's schedule. The values represent hypothetical win-loss records, helping you 
+                    understand how much your record was influenced by your schedule.
+                """)
+                
                 scheduling_luck_df = create_scheduling_luck_dataframe(league_data)
-                st.dataframe(scheduling_luck_df)
+                st.dataframe(scheduling_luck_df, hide_index=True)
 
     # Back Button
     if st.button("Back"):
