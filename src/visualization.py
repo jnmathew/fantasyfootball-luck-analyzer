@@ -76,7 +76,7 @@ def generate_opponent_underperformance_chart(luck_indices_df, output_file=None):
         )
 
     # Add titles and labels
-    plt.title("Fantasy Football Luck Index by Team", fontsize=16)
+    plt.title("Opponent Underperformance: Luck Index by Team", fontsize=16)
     plt.xlabel("Team Name", fontsize=12)
     plt.ylabel("Luck Index", fontsize=12)
     plt.xticks(rotation=45, ha="right")  # Rotate team names for readability
@@ -86,8 +86,6 @@ def generate_opponent_underperformance_chart(luck_indices_df, output_file=None):
     if output_file:
         plt.savefig(output_file, dpi=300)
         print(f"Chart saved to {output_file}")
-    else:
-        plt.show()
 
     return plt
 
