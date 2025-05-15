@@ -41,7 +41,6 @@ def get_luck_index_v1(league, team_id, regular_season_weeks=14):
             # Calculate weekly luck and update the index
             weekly_luck = opponent_projected - opponent_score
             luck_index += weekly_luck
-            #print(f"Week {week}: Opponent {opponent} Actual = {opponent_score}, Projected = {opponent_projected}, Weekly Luck = {weekly_luck}")
             break
 
     return luck_index
@@ -62,7 +61,6 @@ def save_luck_indices_to_file_v1(league, output_file=None):
 
         # Calculate the team's luck index
         luck_index = get_luck_index_v1(league, team_id)
-        print(f"Team: {team_name}, Luck Index: {luck_index}")
 
         # Add the result to the list
         team_luck_data.append({
@@ -95,7 +93,6 @@ def get_luck_index_v2(league, regular_season_weeks=14):
     # Initialize each team's luck to 0
     for team in league.teams:
         luck_indices[team.team_id] = 0
-        print(f"Team Name: {team.team_name}, Team ID: {team.team_id}")
 
     for week in range(1, min(league.current_week + 1, regular_season_weeks + 1)):
         box_scores = league.box_scores(week=week)
@@ -119,7 +116,7 @@ def get_luck_index_v2(league, regular_season_weeks=14):
 
 def save_luck_indices_to_file_v2(league, output_file=None):
     """
-    Calculate and save the luck indices of all teams to a file using the optimized `get_luck_index_2`.
+    Calculate and save the luck indices of all teams to a file using the optimized `get_luck_index_v2`.
     """
     luck_indices = get_luck_index_v2(league)
     team_luck_data = []
@@ -128,7 +125,6 @@ def save_luck_indices_to_file_v2(league, output_file=None):
         team_id = team.team_id
         team_name = team.team_name
         luck_index = luck_indices.get(team_id, 0)
-        print(f"Team: {team_name}, Luck Index: {luck_index}")
 
         team_luck_data.append({
             "Team Name": team_name,
@@ -142,7 +138,6 @@ def save_luck_indices_to_file_v2(league, output_file=None):
             writer.writeheader()
             writer.writerows(team_luck_data)
         print(f"Luck indices saved to {output_file}!")
-
 
 def save_and_visualize_pythagorean_luck(pythagorean_luck_data, output_file=None, image_file=None):
     """
