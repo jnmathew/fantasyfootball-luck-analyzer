@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-DEBUG_MODE = os.getenv('DEBUG_MODE', 'False').lower() == 'false'
+DEBUG_MODE = False
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 SWID = os.getenv('SWID')
 ESPN_S2 = os.getenv('ESPN_S2')
@@ -78,7 +78,7 @@ def log_in():
 
                 # Fetch league data and store in session state
                 with st.spinner('Just a moment. Fetching your custom league data...'):
-                    league = League(league_id=LEAGUE_ID, year=2024, espn_s2=ESPN_S2, swid=SWID)
+                    league = League(league_id=league_id, year=2024, espn_s2=espn_s2, swid=swid)
                     st.session_state['league'] = league
                     st.session_state['league_data'] = fetch_league_data(league)
 
@@ -185,7 +185,7 @@ def main():
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False
 
-    if st.session_state['logged_in']:
+    if st.session_state['logged_in'] == True:
         display_visualizations()
     else:
         log_in()
