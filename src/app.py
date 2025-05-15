@@ -1,9 +1,9 @@
 import streamlit as st
 from espn_api.football import League
 from api_client import fetch_league_data
-from visualization import plot_luck_indices, plot_pythagorean_expectation_luck, save_luck_indices_to_file_3, create_scheduling_luck_dataframe, save_and_visualize_pythagorean_luck \
-    , create_scatterplot_luck_figure
-from analysis import calculate_pythagorean_expectation_luck, calculate_scatterplot_luck, get_luck_index_3
+from visualization import generate_opponent_underperformance_chart, plot_pythagorean_expectation_luck, save_luck_indices_to_file_v3, \
+create_scheduling_luck_dataframe, create_scatterplot_luck_figure
+from analysis import calculate_pythagorean_expectation_luck, calculate_scatterplot_luck, get_luck_index_v3
 import os
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
@@ -15,6 +15,17 @@ DEBUG_MODE = os.getenv('DEBUG_MODE', 'False').lower() == 'true'
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 SWID = os.getenv('SWID')
 ESPN_S2 = os.getenv('ESPN_S2')
+
+# Custom CSS for fixed width buttons
+st.markdown("""
+    <style>
+    .stButton button {
+        width: 300px;
+            display: block;
+            margin: 0 auto;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 def log_in():
     st.title("ESPN Fantasy Football Luck Analyzer")
@@ -32,9 +43,10 @@ def log_in():
         st.session_state['swid'] = SWID
         st.session_state['espn_s2'] = ESPN_S2
         # Fetch league data and store in session state
-        league = League(league_id=LEAGUE_ID, year=2024, espn_s2=ESPN_S2, swid=SWID)
-        st.session_state['league'] = league
-        st.session_state['league_data'] = fetch_league_data(league)
+        with st.spinner('Just a moment. Fetching your custom league data...'):
+            league = League(league_id=LEAGUE_ID, year=2024, espn_s2=ESPN_S2, swid=SWID)
+            st.session_state['league'] = league
+            st.session_state['league_data'] = fetch_league_data(league)
         st.rerun()
     else:
         # Input Fields
@@ -65,25 +77,35 @@ def log_in():
                 st.session_state['espn_s2'] = espn_s2
 
                 # Fetch league data and store in session state
-                league = League(league_id=league_id, year=2024, espn_s2=espn_s2, swid=swid)
-                st.session_state['league'] = league
-                st.session_state['league_data'] = fetch_league_data(league)
+                with st.spinner('Just a moment. Fetching your custom league data...'):
+                    league = League(league_id=LEAGUE_ID, year=2024, espn_s2=ESPN_S2, swid=SWID)
+                    st.session_state['league'] = league
+                    st.session_state['league_data'] = fetch_league_data(league)
 
                 st.rerun()
 
 def display_visualizations():
-    st.title("Luck Analysis")
+    
+    st.title(f"{st.session_state['league_data']['league_name']}: Luck Analysis")
+
     st.write("Here are some visualizations to help you analyze your luck in the league.")
 
-    # Buttons for each metric
-    if st.button("Opponent Underperformance"):
-        st.session_state['metric'] = 'opponent_underperformance'
-    if st.button("Pythagorean Expectation"):
-        st.session_state['metric'] = 'pythagorean_expectation'
-    if st.button("Scatterplot Luck"):
-        st.session_state['metric'] = 'scatterplot_luck'
-    if st.button("Scheduling Luck"):
-        st.session_state['metric'] = 'scheduling_luck'
+    # Create a 2x2 grid for the buttons
+    col1, col2 = st.columns(2)
+    col3, col4 = st.columns(2)
+
+    with col1:
+        if st.button("Opponent Underperformance"):
+            st.session_state['metric'] = 'opponent_underperformance'
+    with col2:
+        if st.button("Pythagorean Expectation"):
+            st.session_state['metric'] = 'pythagorean_expectation'
+    with col3:
+        if st.button("Scatterplot Luck"):
+            st.session_state['metric'] = 'scatterplot_luck'
+    with col4:
+        if st.button("Scheduling Luck"):
+            st.session_state['metric'] = 'scheduling_luck'
 
     # Display the selected metric
     if 'metric' in st.session_state:
@@ -96,10 +118,10 @@ def display_visualizations():
             league = st.session_state['league']
 
             if st.session_state['metric'] == 'opponent_underperformance':
-                luck_indices = get_luck_index_3(league_data)
-                luck_indices_df = save_luck_indices_to_file_3(league_data, luck_indices)
+                luck_indices = get_luck_index_v3(league_data)
+                luck_indices_df = save_luck_indices_to_file_v3(league_data, luck_indices)
                 st.dataframe(luck_indices_df)
-                plot = plot_luck_indices(luck_indices_df)
+                plot = generate_opponent_underperformance_chart(luck_indices_df)
                 st.pyplot(plot)
             elif st.session_state['metric'] == 'pythagorean_expectation':
                 pythagorean_luck_data = calculate_pythagorean_expectation_luck(league_data)
