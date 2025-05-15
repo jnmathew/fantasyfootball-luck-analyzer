@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-DEBUG_MODE = os.getenv('DEBUG_MODE', 'False').lower() == 'true'
+DEBUG_MODE = os.getenv('DEBUG_MODE', 'False').lower() == 'false'
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 SWID = os.getenv('SWID')
 ESPN_S2 = os.getenv('ESPN_S2')
@@ -174,7 +174,7 @@ def display_visualizations():
                 """)
                 
                 scheduling_luck_df = create_scheduling_luck_dataframe(league_data)
-                st.dataframe(scheduling_luck_df, hide_index=True)
+                st.dataframe(scheduling_luck_df)
 
     # Back Button
     if st.button("Back"):
