@@ -1,88 +1,25 @@
-from api_client import fetch_league_views, fetch_league_data
 import pandas as pd
 
-def calculate_luck_index(league_data, team_id):
-    """
-    Calculate how 'unlucky' a team is based on opponent performance.
-    """
-    # Extract schedule from league_data
-    matchups = league_data.get('schedule', [])
-    if not matchups:
-        print(f"No matchups found in league data for team {team_id}.")
-        return 0
-
-    luck_score = 0
-    matchups_processed = 0
-
-    # Iterate through each matchup
-    for matchup in matchups:
-        if matchup['home']['teamId'] == team_id:
-            # Team is the home team
-            opponent_score = matchup['away'].get('totalPoints', 0)
-            opponent_proj = matchup['away'].get('pointsProjected', 0)
-            matchups_processed += 1
-            print(f"Home Opponent: Actual = {opponent_score}, Projected = {opponent_proj}")
-        elif matchup['away']['teamId'] == team_id:
-            # Team is the away team
-            opponent_score = matchup['home'].get('totalPoints', 0)
-            opponent_proj = matchup['home'].get('pointsProjected', 0)
-            matchups_processed += 1
-            print(f"Away Opponent: Actual = {opponent_score}, Projected = {opponent_proj}")
-        else:
-            # Skip matchups that don't involve this team
-            continue
-
-        # Calculate overperformance for the matchup
-        luck_score += (opponent_score - opponent_proj)
-
-    # Debugging outputs
-    print(f"Matchups Processed for Team {team_id}: {matchups_processed}")
-    print(f"Luck Score for Team {team_id}: {luck_score}")
+def get_luck_index_v3(league_data):
+    '''
+    Calculate how 'lucky' a team is based on opponent performance.
+    This function calculates the luck index for all teams in the league
+    based on the difference between projected and actual scores of their opponents.
     
-    # Return the calculated Luck Index
-    return luck_score
-
-def get_luck_index_4(league_data):
-    # Number of teams in the league
-    num_teams = league_data['status']['teamsJoined']
-    luck_indices = [0] * (num_teams + 1)  # One extra index to handle non-sequential IDs
-
-    # Loop through each matchup in the schedule
-    for matchup in league_data['schedule']:
-        home_team = matchup.get('home', {})
-        away_team = matchup.get('away', {})
-
-        # Skip invalid matchups (e.g., bye weeks or incomplete data)
-        if not home_team or not away_team:
-            continue
-
-        # Update luck index for the home team
-        home_team_id = home_team.get('teamId')
-        away_projected = away_team.get('pointsByScoringPeriod', {}).get(str(matchup['matchupPeriodId']), 0)
-        away_actual = away_team.get('totalPoints', 0)
-        home_luck = away_projected - away_actual
-        if home_team_id is not None and 0 <= home_team_id <= num_teams:
-            luck_indices[home_team_id] += home_luck
-
-        # Update luck index for the away team
-        away_team_id = away_team.get('teamId')
-        home_projected = home_team.get('pointsByScoringPeriod', {}).get(str(matchup['matchupPeriodId']), 0)
-        home_actual = home_team.get('totalPoints', 0)
-        away_luck = home_projected - home_actual
-        if away_team_id is not None and 0 <= away_team_id <= num_teams:
-            luck_indices[away_team_id] += away_luck
-
-    return luck_indices
-
-def get_luck_index_3(league_data):
+    Parameters:
+    - league_data: The league data containing box scores and team information.
+    
+    Returns:
+    - luck_indices: A list of luck indices for all teams.
+    '''
     num_teams = len(league_data['teams'])
     luck_indices = [0] * (num_teams + 5)  # add arbitrary buffer for non-sequential IDs, in case of missing teams
 
-    # Get the current fantasy week
     current_week = league_data['current_week']
+    reg_season_count = league_data['regular_season_count']
 
     # Loop through each regular season week
-    for week in range(1, min(current_week, league_data['regular_season_count'] + 1)):
+    for week in range(1, min(current_week + 1, reg_season_count + 1)):
         box_scores = league_data['box_scores'][week]
 
         # Process each matchup
@@ -104,90 +41,6 @@ def get_luck_index_3(league_data):
                 luck_indices[away_team_id] += away_luck
 
     return luck_indices
-
-def get_luck_index_2(league):
-    """
-    Calculate how 'lucky' all teams are based on opponent performance.
-
-    Parameters:
-    - league: The league object with data on teams and matchups.
-
-    Returns:
-    - luck_indices: An array with cumulative luck scores for all teams.
-    """
-    num_teams = len(league.teams)
-    luck_indices = [0] * (num_teams + 1)  # One extra index to handle non-sequential IDs
-
-    # Get the current fantasy week
-    current_week = league.current_week
-
-    # Loop through each week up to but excluding the current week
-    for week in range(1, current_week):
-        box_scores = league.box_scores(week=week)
-
-        # Process each matchup
-        for box_score in box_scores:
-            # Skip invalid matchups (Bye weeks or incomplete data)
-            if not box_score.home_team or not box_score.away_team:
-                continue
-
-            # Update luck index for the home team
-            home_team_id = box_score.home_team.team_id
-            opponent_projected = box_score.away_projected
-            opponent_actual = box_score.away_score
-            home_luck = opponent_projected - opponent_actual
-            if 0 <= home_team_id - 1 < len(luck_indices):
-                luck_indices[home_team_id - 1] += home_luck
-
-            # Update luck index for the away team
-            away_team_id = box_score.away_team.team_id
-            opponent_projected = box_score.home_projected
-            opponent_actual = box_score.home_score
-            away_luck = opponent_projected - opponent_actual
-            if 0 <= away_team_id - 1 < len(luck_indices):
-                luck_indices[away_team_id - 1] += away_luck
-
-    return luck_indices
-
-def get_luck_index(league, team_id):
-    """
-    Calculate how 'unlucky' a team is based on opponent performance.
-    """
-    # Initialize the luck index
-    luck_index = 0
-
-    # Get the current fantasy week
-    current_week = league.current_week
-
-    # Loop through each week up to but excluding the current week
-    for week in range(1, current_week):
-        # Get box scores for the week
-        box_scores = league.box_scores(week=week)
-        
-        # Find the matchup involving your team
-        for box_score in box_scores:
-            # Check if it's a valid matchup (Bye weeks may have None or 0 for teams)
-            if (box_score.home_team == 0 or box_score.away_team == 0):
-                continue
-
-            if box_score.home_team.team_id == team_id:
-                #opponent = box_score.away_team.team_name
-                opponent_score = box_score.away_score
-                opponent_projected = box_score.away_projected
-            elif box_score.away_team.team_id == team_id:
-                #opponent = box_score.home_team.team_name
-                opponent_score = box_score.home_score
-                opponent_projected = box_score.home_projected
-            else:
-                continue
-            
-            # Calculate weekly luck and update the index
-            weekly_luck = opponent_projected - opponent_score
-            luck_index += weekly_luck
-            #print(f"Week {week}: Opponent {opponent} Actual = {opponent_score}, Projected = {opponent_projected}, Weekly Luck = {weekly_luck}")
-            break
-
-    return luck_index
 
 def calculate_pythagorean_expectation_luck(league_data, p=2):
     """
@@ -334,11 +187,14 @@ def calculate_scatterplot_luck(league_data):
 
     return df
 
-def calculate_actual_records(league):
-    records = {team.team_id: {'wins': team.wins, 'losses': team.losses} for team in league.teams}
-    return records
+def calculate_scheduling_luck(league_data):
+    '''
+    Simulate hypothetical records for each team based on their matchups and scores.
+    This function calculates the hypothetical wins and losses for each team against all other teams
+    in the league, excluding their actual matchups.
 
-def simulate_hypothetical_records(league_data):
+    Used in scheduling luck analysis.
+    '''
     hypothetical_records = {team['id']: {opponent['id']: {'wins': 0, 'losses': 0} for opponent in league_data['teams']} for team in league_data['teams']}
 
     for team in league_data['teams']:
@@ -364,7 +220,6 @@ def simulate_hypothetical_records(league_data):
                 hypothetical_records[team_id][opponent_id]['losses'] = team['losses']
                 continue
 
-            opponent_id = opponent_team['id']
             opponent_scores = []
 
             for week in range(1, min(league_data['current_week'], league_data['regular_season_count'] + 1)):
@@ -379,8 +234,14 @@ def simulate_hypothetical_records(league_data):
                     elif box_score['away_team_id'] == opponent_id:
                         opponent_scores.append(box_score['away_score'])
 
-            wins = sum(1 for ts, os in zip(team_scores, opponent_scores) if ts > os)
-            losses = len(team_scores) - wins
+            # Calculate hypothetical wins and losses excluding the actual matchups
+            wins = 0
+            losses = 0
+            for ts, os in zip(team_scores, opponent_scores):
+                if ts > os:
+                    wins += 1
+                else:
+                    losses += 1
 
             hypothetical_records[team_id][opponent_id]['wins'] = wins
             hypothetical_records[team_id][opponent_id]['losses'] = losses
