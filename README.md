@@ -55,11 +55,29 @@ You can access the app at the following URL: [Your Deployed App URL].
 
 ## Screenshots
 
-![Main App](readme_assets/main_view.png)
-*Main interface for selecting different metrics.*
+Opponent Underperformance
+<div style="text-align: left;">
+    <img src="readme_assets/opp_underperformance.png" alt="Opponent Underperformance" width="600">
+    <p><em>Bar chart of opponent underperformance luck.</em></p>
+</div>
 
-![Opponent Underperformance](readme_assets/opponent_underperformance.png)
-*Bar chart of opponent underperformance luck.*
+Scatterplot
+<div style="text-align: left;">
+    <img src="readme_assets/scatterplot_readme.png" alt="Scatterplot Luck" width="600">
+    <p><em>Scatterplot of all teams in an example league.</em></p>
+</div>
+
+Pythagorean Expectation
+<div style="text-align: left;">
+    <img src="readme_assets/pythagorean_expectation.png" alt="Pythagorean Expectation" width="600">
+    <p><em>Chart comparing actual wins to expected wins based on the Pythagorean Expectation formula.</em></p>
+</div>
+
+Scheduling
+<div style="text-align: left;">
+    <img src="readme_assets/scheduling_readme.png" alt="Scheduling Luck" width="600">
+    <p><em>Table showing how each (row) team's record would change with all other teams' (columns) respective schedule.</em></p>
+</div>
 
 ---
 
@@ -77,5 +95,5 @@ Contributions are welcome! Feel free to open an issue or submit a pull request f
 
 ## Acknowledgments
 
-- Built on top of the excellent [espn-api](https://github.com/cwendt94/espn-api) library.
-- Inspired by the pain of losing to the highest scorer every week 😭.
+- Built with the assistance of the [espn-api](https://github.com/cwendt94/espn-api) library.
+- Inspired by the pain of losing to the highest scorer every week 😭 (or so it seems!).
