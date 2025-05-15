@@ -38,7 +38,7 @@ def benchmark_comparison(league):
     start_time = time.time()
     league_data = fetch_league_data(league)
     luck_indices_3 = get_luck_index_v3(league_data)
-    save_luck_indices_to_file_v3(league_data, luck_indices_3, "luck_indices_3.csv")
+    save_luck_indices_to_file_v3(league_data, luck_indices_3, None)
     end_time = time.time()
     new_time = end_time - start_time
     print(f"save_luck_indices_to_file_v3 runtime: {new_time:.2f} seconds")
