@@ -31,7 +31,9 @@ The **Fantasy Football Luck Analyzer** is a web-based tool built with Streamlit 
 
 ## Access the App
 
-You can access the app at the following URL: [Your Deployed App URL].
+You can access the app at the following URL: https://fantasyfootball-luck-analyzer.streamlit.app/.
+
+**NOTE: First load may take a few seconds — app spins up on demand.**
 
 ---
 
