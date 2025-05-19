@@ -195,55 +195,74 @@ def calculate_scheduling_luck(league_data):
 
     Used in scheduling luck analysis.
     '''
-    hypothetical_records = {team['id']: {opponent['id']: {'wins': 0, 'losses': 0} for opponent in league_data['teams']} for team in league_data['teams']}
+    teams = league_data['teams']
+    num_weeks = min(league_data['current_week'], league_data['regular_season_count'] + 1)
 
-    for team in league_data['teams']:
-        team_id = team['id']
-        team_scores = []
+    # Step 1: Build a dict mapping each team to their weekly scores and opponent IDs
+    team_scores_by_week = {team['id']: [] for team in teams}
+    opponent_ids_by_week = {team['id']: [] for team in teams}
 
-        for week in range(1, min(league_data['current_week'], league_data['regular_season_count'] + 1)):
-            box_scores = league_data['box_scores'][week]
+    for week in range(1, num_weeks):
+        for box_score in league_data['box_scores'].get(week, []):
+            home_id = box_score['home_team_id']
+            away_id = box_score['away_team_id']
+            home_score = box_score['home_score']
+            away_score = box_score['away_score']
 
-            for box_score in box_scores:
-                if box_score['home_team_id'] == 0 or box_score['away_team_id'] == 0:
-                    continue
-
-                if box_score['home_team_id'] == team_id:
-                    team_scores.append(box_score['home_score'])
-                elif box_score['away_team_id'] == team_id:
-                    team_scores.append(box_score['away_score'])
-
-        for opponent_team in league_data['teams']:
-            opponent_id = opponent_team['id']
-            if opponent_id == team_id:
-                hypothetical_records[team_id][opponent_id]['wins'] = team['wins']
-                hypothetical_records[team_id][opponent_id]['losses'] = team['losses']
+            # Skip invalid matches
+            if home_id == 0 or away_id == 0:
                 continue
 
-            opponent_scores = []
+            team_scores_by_week[home_id].append(home_score)
+            opponent_ids_by_week[home_id].append(away_id)
 
-            for week in range(1, min(league_data['current_week'], league_data['regular_season_count'] + 1)):
-                box_scores = league_data['box_scores'][week]
+            team_scores_by_week[away_id].append(away_score)
+            opponent_ids_by_week[away_id].append(home_id)
 
-                for box_score in box_scores:
-                    if box_score['home_team_id'] == 0 or box_score['away_team_id'] == 0:
-                        continue
+    # Step 2: Simulate hypothetical records
+    hypothetical_records = {
+        team['id']: {
+            opponent['id']: {'wins': 0, 'losses': 0}
+            for opponent in teams
+        }
+        for team in teams
+    }
 
-                    if box_score['home_team_id'] == opponent_id:
-                        opponent_scores.append(box_score['home_score'])
-                    elif box_score['away_team_id'] == opponent_id:
-                        opponent_scores.append(box_score['away_score'])
+    for simulated_team in teams:
+        sim_id = simulated_team['id']
+        sim_scores = team_scores_by_week[sim_id]
 
-            # Calculate hypothetical wins and losses excluding the actual matchups
+        for schedule_donor in teams:
+            donor_id = schedule_donor['id']
+            donor_opponents = opponent_ids_by_week[donor_id]
+
+            if sim_id == donor_id:
+                hypothetical_records[sim_id][donor_id] = {
+                    'wins': simulated_team['wins'],
+                    'losses': simulated_team['losses']
+                }
+                continue
+
             wins = 0
             losses = 0
-            for ts, os in zip(team_scores, opponent_scores):
-                if ts > os:
+            for week_index, opponent_id in enumerate(donor_opponents):
+                if opponent_id == sim_id:
+                    # Skip mirror matchup
+                    continue
+
+                opp_score_list = team_scores_by_week.get(opponent_id, [])
+                if week_index >= len(sim_scores) or week_index >= len(opp_score_list):
+                    continue
+
+                my_score = sim_scores[week_index]
+                opp_score = opp_score_list[week_index]
+
+                if my_score > opp_score:
                     wins += 1
                 else:
                     losses += 1
 
-            hypothetical_records[team_id][opponent_id]['wins'] = wins
-            hypothetical_records[team_id][opponent_id]['losses'] = losses
+            hypothetical_records[sim_id][donor_id]['wins'] = wins
+            hypothetical_records[sim_id][donor_id]['losses'] = losses
 
     return hypothetical_records

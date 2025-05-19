@@ -173,9 +173,20 @@ def display_visualizations():
             elif st.session_state['metric'] == 'scheduling_luck':
                 st.subheader("Scheduling Luck")
                 st.write("""
-                    This table shows how each team would have performed if they had played every other 
-                    team's schedule. The values represent hypothetical win-loss records, helping you 
-                    understand how much your record was influenced by your schedule.
+                This table shows how each team would have performed if they had played every other team’s schedule. 
+                Think of each **row** as the **team being simulated**, and each **column** as the **schedule being tested**. 
+                So, the cell at `[i][j]` tells you what **Team i’s** record would have been if they had played **Team j’s** 
+                actual opponents week to week. This is a way to simulate schedule difficulty and see how much a team’s record 
+                might be inflated or deflated by luck of the draw.
+
+                Let’s say Team A thinks Team B had a much easier path. You can use the table to test that idea: 
+                compare `[A][A]` (Team A’s actual record) with `[A][B]` (Team A on Team B’s schedule), and compare 
+                `[B][B]` to `[B][A]`. If Team A does a lot better on B’s schedule, and Team B does worse on A’s, 
+                that might mean A was right to feel a little unlucky.
+                         
+                NOTE: Mirror matchups are not included in this simulation (if you were an opponent of team B
+                and wanted to simulate your team on their schedule, the week(s) you face "yourself" would be
+                excluded from the simulation).
                 """)
                 
                 scheduling_luck_df = create_scheduling_luck_dataframe(league_data)
