@@ -3,5 +3,5 @@ numpy==2.2.5
 matplotlib==3.10.0
 plotly==6.0.1
 streamlit==1.54.0
-python-dotenv==1.1.0
+python-dotenv>=1.2.2
 espn-api==0.44.1
